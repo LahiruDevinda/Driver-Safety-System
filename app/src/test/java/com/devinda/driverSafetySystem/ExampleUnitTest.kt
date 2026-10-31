@@ -1,4 +1,4 @@
-package com.devinda.DriverSafetySystem
+package com.devinda.driverSafetySystem
 
 import org.junit.Test
 

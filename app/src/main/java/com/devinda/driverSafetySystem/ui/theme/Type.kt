@@ -1,4 +1,4 @@
-package com.devinda.DriverSafetySystem.ui.theme
+package com.devinda.driverSafetySystem.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

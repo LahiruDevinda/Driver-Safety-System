@@ -1,4 +1,4 @@
-package com.devinda.DriverSafetySystem
+package com.devinda.driverSafetySystem
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

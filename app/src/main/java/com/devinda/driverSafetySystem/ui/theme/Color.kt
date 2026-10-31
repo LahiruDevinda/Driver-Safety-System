@@ -1,4 +1,4 @@
-package com.devinda.DriverSafetySystem.ui.theme
+package com.devinda.driverSafetySystem.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
