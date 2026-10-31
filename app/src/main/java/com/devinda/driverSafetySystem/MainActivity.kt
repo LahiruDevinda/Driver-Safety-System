@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import com.devinda.driverSafetySystem.ui.theme.DriverSafetySystemTheme
-import com.devinda.driverSafetySystem.util.FaceAnalyze
+import com.devinda.driverSafetySystem.ui.screen.DmsCameraScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
                             .fillMaxSize()
                             .padding(innerPadding)
                     ) {
-                        FaceAnalyze()
+                        DmsCameraScreen()
                     }
                 }
             }

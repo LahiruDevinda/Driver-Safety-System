@@ -1,4 +1,4 @@
-package com.devinda.driverSafetySystem.util
+package com.devinda.driverSafetySystem.ui.screen
 
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -16,6 +16,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,16 +30,23 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.devinda.driverSafetySystem.faceAnalyzer.DriverState
 import com.devinda.driverSafetySystem.faceAnalyzer.FaceAnalyzer
+import com.devinda.driverSafetySystem.model.DriverState
+import java.util.concurrent.Executors
 
 @Composable
-fun FaceAnalyze() {
+fun DmsCameraScreen() {
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
-    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
+    val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
 
     var driverState by remember { mutableStateOf(DriverState()) }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            cameraExecutor.shutdown()
+        }
+    }
 
     Scaffold { innerPadding ->
         Box(
@@ -50,7 +58,7 @@ fun FaceAnalyze() {
                 modifier = Modifier.fillMaxSize(),
                 factory = { ctx ->
                     val previewView = PreviewView(ctx)
-                    val executor = ContextCompat.getMainExecutor(ctx)
+                    val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
 
                     cameraProviderFuture.addListener({
                         val cameraProvider = cameraProviderFuture.get()
@@ -64,7 +72,7 @@ fun FaceAnalyze() {
                             .build()
                             .also { analysis ->
                                 analysis.setAnalyzer(
-                                    executor,
+                                    cameraExecutor,
                                     FaceAnalyzer { updatedState ->
                                         driverState = updatedState
                                     }
@@ -84,7 +92,7 @@ fun FaceAnalyze() {
                         } catch (exc: Exception) {
                             exc.printStackTrace()
                         }
-                    }, executor)
+                    }, ContextCompat.getMainExecutor(ctx))
 
                     previewView
                 }
@@ -97,39 +105,46 @@ fun FaceAnalyze() {
                     .align(Alignment.TopCenter),
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = if (driverState.isDrowsy || driverState.isDistracted) {
-                        Color(0xCCB00020)
-                    } else {
-                        Color(0xCC1E1E1E)
+                    containerColor = when {
+                        !driverState.faceDetected -> Color(0xCC2A2A2A)
+                        driverState.isDrowsy -> Color(0xDDB00020)
+                        driverState.isDistracted -> Color(0xDDFF8C00)
+                        else -> Color(0xCC1E1E1E)
                     }
                 )
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     if (!driverState.faceDetected) {
                         Text(
-                            text = "NO DRIVER DETECTED",
+                            text = "👁️ NO DRIVER DETECTED IN SIGHT",
                             color = Color.Yellow,
                             fontSize = 16.sp
                         )
                     } else {
                         Text(
-                            text = if (driverState.isDrowsy) "⚠️ DROWSINESS DETECTED!"
-                            else if (driverState.isDistracted) "⚠️ LOOKING AWAY!"
-                            else "Status: Attentive",
+                            text = when {
+                                driverState.isDrowsy -> "⚠️ CRITICAL: DROWSINESS DETECTED!"
+                                driverState.isDistracted -> "⚠️ WARNING: LOOKING AWAY FROM ROAD!"
+                                else -> "✅ Driver Status: Attentive"
+                            },
                             color = Color.White,
-                            fontSize = 18.sp
+                            fontSize = 17.sp
                         )
+
                         Text(
-                            text = "Head Angles: Pitch %.1f° | Yaw %.1f° | Roll %.1f°".format(
+                            text = "Angles: Pitch %.1f° | Yaw %.1f° | Roll %.1f°".format(
                                 driverState.pitch, driverState.yaw, driverState.roll
                             ),
                             color = Color.LightGray,
-                            fontSize = 13.sp
+                            fontSize = 13.sp,
+                            modifier = Modifier.padding(top = 4.dp)
                         )
+
+                        val leftEyePct = if (driverState.leftEyeProb >= 0f) driverState.leftEyeProb * 100 else 0f
+                        val rightEyePct = if (driverState.rightEyeProb >= 0f) driverState.rightEyeProb * 100 else 0f
+
                         Text(
-                            text = "Eyes Open: Left %.0f%% | Right %.0f%%".format(
-                                driverState.leftEyeProb * 100, driverState.rightEyeProb * 100
-                            ),
+                            text = "Eyes Open: L %.0f%% | R %.0f%%".format(leftEyePct, rightEyePct),
                             color = Color.LightGray,
                             fontSize = 13.sp
                         )
