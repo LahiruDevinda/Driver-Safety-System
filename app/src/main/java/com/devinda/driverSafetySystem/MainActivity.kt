@@ -11,6 +11,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import com.devinda.driverSafetySystem.ui.theme.DriverSafetySystemTheme
 import com.devinda.driverSafetySystem.ui.screen.DmsCameraScreen
+import com.devinda.driverSafetySystem.ui.screen.TelemetryScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,6 +26,7 @@ class MainActivity : ComponentActivity() {
                             .padding(innerPadding)
                     ) {
                         DmsCameraScreen()
+                        TelemetryScreen()
                     }
                 }
             }
