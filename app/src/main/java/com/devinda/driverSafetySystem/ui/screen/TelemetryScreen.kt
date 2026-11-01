@@ -45,7 +45,7 @@ fun TelemetryScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
-            onClick = { viewModel.sendCommand(Command.VIBRATE_MOTOR) },
+            onClick = { viewModel.sendManualCommand(Command.VIBRATE_MOTOR) },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Vibrate Motor")
@@ -54,7 +54,7 @@ fun TelemetryScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         Button(
-            onClick = { viewModel.sendCommand(Command.ACCELERATE_ENABLE) },
+            onClick = { viewModel.sendManualCommand(Command.ACCELERATE_ENABLE) },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Enable Accelerate")
@@ -63,7 +63,7 @@ fun TelemetryScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         Button(
-            onClick = { viewModel.sendCommand(Command.BRAKE_ENABLE) },
+            onClick = { viewModel.sendManualCommand(Command.BRAKE_ENABLE) },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Enable Brake")
