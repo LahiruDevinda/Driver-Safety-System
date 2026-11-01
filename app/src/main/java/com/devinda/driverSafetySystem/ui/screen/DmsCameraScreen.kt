@@ -24,7 +24,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -37,7 +36,6 @@ import java.util.concurrent.Executors
 @Composable
 fun DmsCameraScreen() {
     val lifecycleOwner = LocalLifecycleOwner.current
-    val context = LocalContext.current
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
 
     var driverState by remember { mutableStateOf(DriverState()) }
