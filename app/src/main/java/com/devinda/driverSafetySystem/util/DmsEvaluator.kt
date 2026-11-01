@@ -75,10 +75,4 @@ class DmsEvaluator(
             isDistracted = isDistractedConfirmed
         )
     }
-
-    fun reset() {
-        fatigueStartTime = 0L
-        distractionStartTime = 0L
-        faceLostStartTime = 0L
-    }
 }
