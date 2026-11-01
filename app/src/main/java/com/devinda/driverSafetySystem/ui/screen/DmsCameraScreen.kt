@@ -17,10 +17,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,16 +28,19 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.devinda.driverSafetySystem.faceAnalyzer.FaceAnalyzer
-import com.devinda.driverSafetySystem.model.DriverState
+import com.devinda.driverSafetySystem.ui.TelemetryViewModel
 import java.util.concurrent.Executors
 
 @Composable
-fun DmsCameraScreen() {
+fun DmsCameraScreen(
+    viewModel: TelemetryViewModel = viewModel()
+) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
 
-    var driverState by remember { mutableStateOf(DriverState()) }
+    val driverState by viewModel.driverState.collectAsState()
 
     DisposableEffect(Unit) {
         onDispose {
@@ -72,7 +74,8 @@ fun DmsCameraScreen() {
                                 analysis.setAnalyzer(
                                     cameraExecutor,
                                     FaceAnalyzer { updatedState ->
-                                        driverState = updatedState
+                                        // Feeds the ViewModel -> updates UI state & evaluates CommandController
+                                        viewModel.onDriverStateUpdated(updatedState)
                                     }
                                 )
                             }
@@ -138,8 +141,8 @@ fun DmsCameraScreen() {
                             modifier = Modifier.padding(top = 4.dp)
                         )
 
-                        val leftEyePct = if (driverState.leftEyeProb >= 0f) driverState.leftEyeProb * 100 else 0f
-                        val rightEyePct = if (driverState.rightEyeProb >= 0f) driverState.rightEyeProb * 100 else 0f
+                        val leftEyePct = if (driverState.leftEyeProb >= 0f) driverState.leftEyeProb * 100f else 0f
+                        val rightEyePct = if (driverState.rightEyeProb >= 0f) driverState.rightEyeProb * 100f else 0f
 
                         Text(
                             text = "Eyes Open: L %.0f%% | R %.0f%%".format(leftEyePct, rightEyePct),
