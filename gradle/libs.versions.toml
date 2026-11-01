@@ -14,6 +14,7 @@ kotlin = "2.2.10"
 composeBom = "2026.02.01"
 cameraCore = "1.6.2"
 lifecycleViewmodelCompose = "2.11.0"
+materialIconsExtended = "1.7.8"
 okhttp = "5.5.1"
 playServicesMlkitFaceDetection = "17.1.0"
 cameraView = "1.6.2"
@@ -25,6 +26,7 @@ accompanist-permissions = { module = "com.google.accompanist:accompanist-permiss
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCoreVersion" }
 androidx-camera-core-v134 = { module = "androidx.camera:camera-core", version.ref = "cameraCoreVersion" }
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "cameraCoreVersion" }
+androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-ktx-v1131 = { module = "androidx.core:core-ktx", version.ref = "coreKtxVersion" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
