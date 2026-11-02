@@ -1,5 +1,7 @@
 package com.devinda.driverSafetySystem.util
 
+import android.Manifest
+import androidx.annotation.RequiresPermission
 import com.devinda.driverSafetySystem.comm.TelemetryBridge
 import com.devinda.driverSafetySystem.model.Command
 import com.devinda.driverSafetySystem.model.DriverState
@@ -18,8 +20,12 @@ class CommandController(
     private var headTurnStartTime: Long = 0L
     private var faceLostStartTime: Long = 0L
 
+    private var hasTriggeredWarningAlert = false
+    private var hasTriggeredCriticalAlert = false
+
     private var lastDispatchedCommand: Command? = null
 
+    @RequiresPermission(Manifest.permission.VIBRATE)
     fun processDriverState(state: DriverState) {
         val currentTime = System.currentTimeMillis()
 
@@ -28,10 +34,12 @@ class CommandController(
             val absentDuration = currentTime - faceLostStartTime
 
             val mode = if (absentDuration >= criticalThresholdMs) {
-                alertManager.criticalWarning()
-                Command.CRITICAL_MODE
+                Command.WARNING_MODE
             } else {
-                alertManager.distractedWarning()
+                if (!hasTriggeredWarningAlert) {
+                    alertManager.distractedWarning()
+                    hasTriggeredWarningAlert = true
+                }
                 Command.WARNING_MODE
             }
             dispatchDebounced(mode)
@@ -66,7 +74,10 @@ class CommandController(
         val targetMode = when {
 
             headSlumpDuration >= criticalThresholdMs -> {
-                alertManager.criticalWarning()
+                if (!hasTriggeredCriticalAlert) {
+                    alertManager.criticalWarning()
+                    hasTriggeredCriticalAlert = true
+                }
                 Command.CRITICAL_MODE
             }
 
@@ -77,11 +88,17 @@ class CommandController(
 
                 when {
                     closedDuration >= criticalThresholdMs -> {
-                        alertManager.criticalWarning()
+                        if (!hasTriggeredCriticalAlert) {
+                            alertManager.criticalWarning()
+                            hasTriggeredCriticalAlert = true
+                        }
                         Command.CRITICAL_MODE
                     }
                     closedDuration >= warningThresholdMs -> {
-                        alertManager.distractedWarning()
+                        if (!hasTriggeredWarningAlert) {
+                            alertManager.distractedWarning()
+                            hasTriggeredWarningAlert = true
+                        }
                         Command.WARNING_MODE
                     }
                     else -> Command.SAFE_MODE
@@ -89,7 +106,10 @@ class CommandController(
             }
 
             headTurnDuration >= warningThresholdMs -> {
-                alertManager.distractedWarning()
+                if (!hasTriggeredWarningAlert) {
+                    alertManager.distractedWarning()
+                    hasTriggeredWarningAlert = true
+                }
                 Command.WARNING_MODE
             }
 
@@ -100,7 +120,10 @@ class CommandController(
 
                 when {
                     drowsyDuration >= warningThresholdMs || headSlumpDuration >= warningThresholdMs -> {
-                        alertManager.sleepyWarning()
+                        if (!hasTriggeredWarningAlert) {
+                            alertManager.sleepyWarning()
+                            hasTriggeredWarningAlert = true
+                        }
                         Command.WARNING_MODE
                     }
                     drowsyDuration >= softWarningThresholdMs || headSlumpDuration >= softWarningThresholdMs -> {
@@ -111,8 +134,18 @@ class CommandController(
             }
 
             else -> {
+
                 eyesClosedStartTime = 0L
                 drowsinessStartTime = 0L
+                headSlumpStartTime = 0L
+                headTurnStartTime = 0L
+
+                if (hasTriggeredWarningAlert || hasTriggeredCriticalAlert) {
+                    alertManager.stopAllAlerts()
+                    hasTriggeredWarningAlert = false
+                    hasTriggeredCriticalAlert = false
+                }
+
                 Command.SAFE_MODE
             }
         }
@@ -127,12 +160,17 @@ class CommandController(
         }
     }
 
+
+    @RequiresPermission(Manifest.permission.VIBRATE)
     fun reset() {
         eyesClosedStartTime = 0L
         drowsinessStartTime = 0L
         headSlumpStartTime = 0L
         headTurnStartTime = 0L
         faceLostStartTime = 0L
+        hasTriggeredWarningAlert = false
+        hasTriggeredCriticalAlert = false
         lastDispatchedCommand = null
+        alertManager.stopAllAlerts()
     }
 }
