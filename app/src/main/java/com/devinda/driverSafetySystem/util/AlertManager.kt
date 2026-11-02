@@ -23,9 +23,11 @@ class AlertManager(private val context: Context) {
         .setAudioAttributes(audioAttributes)
         .build()
 
-    private val sleepySoundId: Int = soundPool.load(context, R.raw.sleepy_chime, 1)
+    private val sleepySoundId: Int = soundPool.load(context, R.raw.distracted_alert, 1)
     private val distractedSoundId: Int = soundPool.load(context, R.raw.distracted_alert, 1)
-    private val criticalSoundId: Int = soundPool.load(context, R.raw.critical_alarm, 1)
+    private val criticalSoundId: Int = soundPool.load(context, R.raw.distracted_alert, 1)
+
+    private var activeStreamId: Int = 0
 
     private val vibrator: Vibrator? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
@@ -44,7 +46,8 @@ class AlertManager(private val context: Context) {
         if (now - lastWarningTimestamp < alertCooldownMs) return
         lastWarningTimestamp = now
 
-        soundPool.play(sleepySoundId, 1.0f, 1.0f, 1, 0, 1.0f)
+        stopCurrentStream()
+        activeStreamId = soundPool.play(sleepySoundId, 1.0f, 1.0f, 1, 0, 1.0f)
         vibrate(250)
     }
 
@@ -54,14 +57,34 @@ class AlertManager(private val context: Context) {
         if (now - lastWarningTimestamp < alertCooldownMs) return
         lastWarningTimestamp = now
 
-        soundPool.play(distractedSoundId, 1.0f, 1.0f, 1, 0, 1.0f)
+        stopCurrentStream()
+        activeStreamId = soundPool.play(distractedSoundId, 1.0f, 1.0f, 1, 0, 1.0f)
         vibrate(200)
     }
 
     @RequiresPermission(Manifest.permission.VIBRATE)
     fun criticalWarning() {
-        soundPool.play(criticalSoundId, 1.0f, 1.0f, 2, 0, 1.0f)
-        vibrate(600)
+        stopCurrentStream()
+        // loop = -1 loops indefinitely until driver recovers and stopAllAlerts() is called
+        activeStreamId = soundPool.play(criticalSoundId, 1.0f, 1.0f, 2, -1, 1.0f)
+        vibrate(1000)
+    }
+
+    @RequiresPermission(Manifest.permission.VIBRATE)
+    fun stopAllAlerts() {
+        stopCurrentStream()
+        try {
+            vibrator?.cancel()
+        } catch (_: Exception) {}
+    }
+
+    private fun stopCurrentStream() {
+        if (activeStreamId != 0) {
+            try {
+                soundPool.stop(activeStreamId)
+            } catch (_: Exception) {}
+            activeStreamId = 0
+        }
     }
 
     @RequiresPermission(Manifest.permission.VIBRATE)
@@ -73,7 +96,9 @@ class AlertManager(private val context: Context) {
         } catch (_: Exception) {}
     }
 
+    @RequiresPermission(Manifest.permission.VIBRATE)
     fun release() {
+        stopAllAlerts()
         soundPool.release()
     }
 }
