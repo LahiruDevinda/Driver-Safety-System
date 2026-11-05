@@ -1,9 +1,11 @@
 package com.devinda.driverSafetySystem.ui
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Application
 import android.bluetooth.BluetoothManager
 import android.content.Context
+import androidx.annotation.RequiresPermission
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.devinda.driverSafetySystem.comm.TelemetryBridge
@@ -34,11 +36,11 @@ class TelemetryViewModel(application: Application) : AndroidViewModel(applicatio
     }
     val bluetoothModel: TelemetryModel by lazy {
         val btManager = appContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        BluetoothTelemetryModel(btManager.adapter, targetDeviceName = "ESP32_Receiver")
+        BluetoothTelemetryModel(appContext, btManager.adapter, targetDeviceName = "ESP32_Receiver")
     }
 
     // Hardware Bridge
-    private val bridge = TelemetryBridge(bluetoothModel)
+    private val bridge = TelemetryBridge(wifiModel)
 
     // Alert and Command Management
     val alertManager = AlertManager(appContext)
@@ -60,7 +62,8 @@ class TelemetryViewModel(application: Application) : AndroidViewModel(applicatio
     private var observationJob: Job? = null
 
     init {
-        connect()
+       // connect()
+        _statusMessage.value = "Select a transport (Bluetooth / Wi-Fi / USB) to connect"
     }
 
     fun connect() {
@@ -76,6 +79,7 @@ class TelemetryViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    @RequiresPermission(Manifest.permission.VIBRATE)
     fun switchTransport(model: TelemetryModel) {
         commandController.reset()
         bridge.switchProtocol(model)
@@ -95,6 +99,7 @@ class TelemetryViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    @RequiresPermission(Manifest.permission.VIBRATE)
     fun onDriverStateUpdated(newState: DriverState) {
         _driverState.value = newState
         commandController.processDriverState(newState)
@@ -107,6 +112,7 @@ class TelemetryViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    @RequiresPermission(Manifest.permission.VIBRATE)
     @SuppressLint("EmptySuperCall")
     override fun onCleared() {
         super.onCleared()
